@@ -3,7 +3,7 @@ Python implementation for the assignments of the course BITS F312 ( Neural Netwo
 
 Assignment 1:
 
-⋅⋅* Linear Regression using batch and stochastic gradient descent
+..* Linear Regression using batch and stochastic gradient descent
 
 ⋅⋅* Ridge regression
 
