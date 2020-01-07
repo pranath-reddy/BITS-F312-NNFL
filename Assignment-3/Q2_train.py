@@ -57,17 +57,7 @@ plt.xlabel('Epoch')
 plt.show()
 plt.savefig('loss.png')
 
-'''
-x_pred= model.predict(x_test)
-n=10
-#plt.figure(figsize=(30,20))
-for i in range(2,12):
-    plt.subplot(n,2,2*i-1)
-    plt.plot(x_pred[i].reshape(-1,1),color='blue')
-    plt.subplot(n,2,2*i)
-    plt.plot(x_test[i],color='green')
-plt.show()
-'''
+
 
 
 
