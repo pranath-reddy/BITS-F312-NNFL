@@ -6,14 +6,17 @@ Pranath Reddy
 2016B5A30572H
 '''
 
-from mat4py import loadmat
+import keras
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from keras import Sequential
-from keras import optimizers
-from keras.models import Model
-from keras.layers import Input,Dense,Conv1D,MaxPooling1D,UpSampling1D,Reshape,Flatten
-import matplotlib.pyplot as plt
+from keras.models import Model, Sequential
+from sklearn.model_selection import train_test_split
+from keras.layers import Input, Dense, Activation, Conv1D, AveragePooling1D, UpSampling1D, Conv2DTranspose
+from keras.utils import *
+from keras.optimizers import *
+import keras.backend as K
+from mat4py import loadmat
 from sklearn import preprocessing
 
 x = loadmat('data_for_cnn.mat')
@@ -27,23 +30,24 @@ x_temp = np.asarray(x_temp)
 x = x_temp
 x = preprocessing.normalize(x)
 x = x.reshape(x.shape[0],x.shape[1],1)
+x_train = x[:900,:,:]
+x_test = x[900:,:,:]
 
-#input-convolution layer-pooling layer-FC-upsampling layer-transpose convolution layer
-input = Input(shape=(1000,1))
-encoder = Conv1D(32, 5, activation= 'relu' , padding= 'same')(input)
-encoder = MaxPooling1D(4, padding= 'same')(encoder)
-encoder = Flatten()(encoder)
-encoded = Dense(500, activation='softmax')(encoder)
-decoder = UpSampling1D(2)(encoded)
-decoder = Reshape((1000,1))(decoder)
-decoded = Conv1D(1, 5, activation='sigmoid', padding='same')(decoder)
-autoencoder = Model(input, decoded)
-autoencoder.summary()
+input   =  Input(shape=(1000,1))
+encoder =  Conv1D(10, 11 , strides=1,input_shape=(1000,1))(input)
+encoder =  AveragePooling1D(pool_size=10)(encoder)
+encoded =  (Dense(16))(encoder)
+decoder =  UpSampling1D(size=10)(encoded)
+x       =  keras.layers.Lambda(lambda x: K.expand_dims(x, axis=2))(decoder)
+x       =  Conv2DTranspose(filters=1, kernel_size=(11, 1), strides=(1, 1))(x)
+decoded =  keras.layers.Lambda(lambda x: K.squeeze(x, axis=2))(x)
 
-opt = optimizers.Adam(lr=0.01)
-autoencoder.compile(optimizer= opt, loss='mse')
-#autoencoder.compile(optimizer= opt, loss='binary_crossentropy')
-history = autoencoder.fit(x, x, epochs=2000, batch_size=512, shuffle=True)
+model = Model(inputs=input, outputs=decoded)
+model.compile(optimizer=Adam(lr=0.01),loss='mean_squared_error')
+model_history=model.fit(x_train,x_train,epochs=500,batch_size=100)
+model.summary()
+
+model.save("model.h5")
 
 # Plot training loss
 plt.plot(history.history['loss'])
@@ -53,6 +57,17 @@ plt.xlabel('Epoch')
 plt.show()
 plt.savefig('loss.png')
 
+'''
+x_pred= model.predict(x_test)
+n=10
+#plt.figure(figsize=(30,20))
+for i in range(2,12):
+    plt.subplot(n,2,2*i-1)
+    plt.plot(x_pred[i].reshape(-1,1),color='blue')
+    plt.subplot(n,2,2*i)
+    plt.plot(x_test[i],color='green')
+plt.show()
+'''
 
 
 
